@@ -1,0 +1,77 @@
+version: '3.8'
+
+services:
+
+  mongodb:
+    image: mongo:6.0.5
+    container_name: mongodb
+    restart: unless-stopped
+    ports:
+      - 27017:27017
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: rootpassword
+    volumes:
+      - MongoDB:/data/db
+    networks:
+      - backend
+
+  mongo-express:
+    image: mongo-express
+    container_name: mongo-express
+    restart: unless-stopped
+    depends_on:
+      - mongodb
+    ports:
+      - 8081:8081
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: root
+      ME_CONFIG_MONGODB_ADMINPASSWORD: rootpassword
+      ME_CONFIG_MONGODB_URL: mongodb://root:rootpassword@mongodb:27017/
+    networks:
+      - backend
+
+  fast-api:
+    build:
+      context: ./backend_fast
+      dockerfile: DockerFile
+    image: my_server_backend
+    restart: unless-stopped
+    depends_on:
+      - mongodb
+      - mongo-express
+    ports:
+      - 8000:8000
+    volumes:
+      - ./backend_fast/app:/app/app
+    environment:
+      ME_CONFIG_MONGODB_URL: mongodb://root:rootpassword@mongodb:27017/
+    networks:
+      - frontend
+      - backend
+  
+  vue-cli:
+    build:
+      context: ./frontend_vue
+      dockerfile: DockerFile
+    image: my_server_frontend
+    restart: unless-stopped
+    depends_on:
+      - mongodb
+      - mongo-express
+      - fast-api
+    ports:
+      - 8080:8080
+    volumes:
+      - ./frontend_vue:/app
+    environment:
+      - CHOKIDAR_USEPOLLING=true #hot reload
+    networks:
+      - frontend
+    
+volumes:
+  MongoDB:
+
+networks:
+  frontend:
+  backend:
