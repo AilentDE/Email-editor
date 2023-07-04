@@ -6,11 +6,15 @@
 
         <label>導入excel
           <input type="file" accept=".xls,.xlsx,.csv" id="file" ref="file" v-on:change="handleFileUpload"/>
-          <button v-on:click="submitFile">Upload data</button>
+          <button @click="submitFile">Upload data</button>
         </label>
-        <!-- <button v-on:click="test_excel">Check data</button> -->
-        <!-- <button v-on:click="saveDesign">Save Design</button> -->
-        <!-- <button v-on:click="exportHtml">Export HTML</button> -->
+        <!-- <button @click="test_excel">Check data</button> -->
+        <label>導入信件
+          <input type="file" accept=".json" id="design" ref="design" v-on:change="handleDesignUpload"/>
+          <button @click="loadDesign">Load Design</button>
+        </label>
+        <button @click="saveDesign">Save Design</button>
+        <button @click="exportHtml">Export HTML</button>
         <button @click="sendSampleEmail">Send sample mail</button>
         <button @click="sendMails">OK Send mails</button>
       </div>
@@ -41,6 +45,7 @@
             minHeight: "100%",
             projectId: 164913,
             locale: "zh-TW",
+            design: "",
             file: "",
             excel_id: "",
             excel_data: [],
@@ -58,9 +63,31 @@
       editorReady() {
         console.log('editorReady');
       },
+      handleDesignUpload() {
+        this.design = this.$refs.design.files[0]
+      },
+      loadDesign() {
+        const reader = new FileReader();
+        reader.readAsText(this.design, "utf-8");
+        new Promise((resolve) => {
+          reader.onload = (e) => {
+            resolve(e);
+          }
+        }).then((data) => {
+        this.$refs.emailEditor.editor.loadDesign(JSON.parse(data.target.result));
+        })
+      },
       saveDesign() {
         this.$refs.emailEditor.editor.saveDesign((design) => {
-          console.log('saveDesign', design);
+          // console.log('saveDesign', design);
+          const jdata = design;
+          const jname = 'test.json';
+          const download = document.createElement('a');
+          download.href = URL.createObjectURL(new Blob([JSON.stringify(jdata)], {
+            type: 'application/json'
+          }));
+          download.download = jname;
+          download.click();
         });
       },
       exportHtml() {
@@ -68,9 +95,6 @@
           // console.log('exportHtml', data);
           console.log(data)
         });
-      },
-      input_excel() {
-        return null
       },
       test_excel() {
         axios.get('http://localhost:8000/files/' + this.excel_id, {
@@ -90,6 +114,9 @@
         }).catch(
           (error) => {console.log(error)}
         )
+      },
+      handleFileUpload() {
+        this.file = this.$refs.file.files[0]
       },
       submitFile() {
         let formData = new FormData();
@@ -117,9 +144,6 @@
             window.alert(error.response.data.message)
           }
         )
-      },
-      handleFileUpload() {
-        this.file = this.$refs.file.files[0]
       },
       sendSampleEmail() {
         const sampleMail = prompt('請輸入接收信箱');
