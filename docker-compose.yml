@@ -71,6 +71,7 @@ services:
       - CHOKIDAR_USEPOLLING=true #hot reload
     networks:
       - frontend
+    command: npm run serve # Linux有container user和主機user不同而無法取用node_modules的問題，故改用docker-compose運行CMD
     
 volumes:
   MongoDB:

@@ -12,11 +12,12 @@ RUN npm install -g @vue/cli
 WORKDIR /app
 
 # 安裝套件
+# RUN rm -rf node_modules/
 # RUN npm install 安裝後只會被mount蓋掉，直接在外部安裝
 
 # 建置 Vue CLI 專案
 # RUN npm run build
 
 # 定義容器啟動時執行的指令
-CMD [ "npm", "run", "serve"]
-# CMD ["yarn", "serve"]
+# CMD [ "npm", "run", "serve"]
+# Linux有container user和主機user不同而無法取用node_modules的問題，故改用docker-compose運行CMD
