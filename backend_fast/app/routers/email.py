@@ -6,6 +6,7 @@ from ..dependencies import QueryParams
 from .files import get_mongo_file
 import smtplib
 from email.mime.text import MIMEText
+import os
 
 router = APIRouter(
     prefix="/email",
@@ -32,7 +33,7 @@ def send_mail(target:str, body:str, feature: dict, subject:str = "來自可洛�
     smtp = smtplib.SMTP('smtp.gmail.com', 587)
     smtp.ehlo()
     smtp.starttls()
-    smtp.login('clusters_info@clusters.tw', 'fwngtmorjyqrjzzu')
+    smtp.login('clusters_info@clusters.tw', os.environ['MAIL_PASS'])
     try:
         status = smtp.sendmail('service@clusters.tw', target, mail.as_string())
     except Exception as error:
